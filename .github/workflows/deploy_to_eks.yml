@@ -1,0 +1,96 @@
+name: Data Engineering Pipeline CI/CD
+
+on:
+  push:
+    branches: ["main", "dev"]
+  pull_request:
+    branches: ["main", "dev"]
+
+# Définition des variables d'environnement globales
+env:
+  AWS_REGION: eu-west-3
+  ECR_REPOSITORY_PREFIX: olist-project
+  PYTHONPATH: ${{ github.workspace }}/src
+
+jobs:
+  # --- JOB 1 : INTEGRATION CONTINUE (TESTS) ---
+  test:
+    name: Run Unit Tests & Profiling
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      - name: Install Dependencies
+        # On installe les dépendances communes pour lancer les tests
+        run: |
+          python -m pip install --upgrade pip
+          pip install pandas numpy pytest sqlalchemy psycopg2-binary
+
+      - name: Run Cleaner Tests
+        run: pytest src/step_1_cleaning/test/test_cleaner.py
+
+      - name: Run Transformer Tests
+        run: pytest src/step_2_transformation/test/test_transformer.py
+
+      - name: Run Merger Tests
+        run: pytest src/step_3_merging/test/test_merger.py
+
+  # --- JOB 2 : DÉPLOIEMENT CONTINU (BUILD & PUSH) ---
+  build-and-deploy:
+    name: Build and Push to AWS ECR
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # Construction et Envoi de l'image CLEANER
+      - name: Build & Push Cleaner
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+        run: |
+          # On se place dans le dossier, on build, et on tag
+          cd src/cleaner
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:$IMAGE_TAG
+
+      # Construction et Envoi de l'image TRANSFORMER
+      - name: Build & Push Transformer
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+        run: |
+          cd src/transformer
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:$IMAGE_TAG
+
+      # Construction et Envoi de l'image MERGER
+      - name: Build & Push Merger
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+        run: |
+          cd src/merger
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:$IMAGE_TAG

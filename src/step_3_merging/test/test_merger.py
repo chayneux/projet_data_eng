@@ -1,7 +1,8 @@
 import pytest
 import pandas as pd
 import os
-from merger import merge_and_finalize
+
+from step_3_merging import merge_and_finalize
 
 def test_merger_logic(tmp_path):
     os.chdir(tmp_path)

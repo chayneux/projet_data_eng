@@ -2,7 +2,8 @@ import pytest
 import pandas as pd
 import numpy as np
 import os
-from cleaner import clean_data
+
+from step_1_cleaning import clean_data
 
 def test_cleaner_logic(tmp_path):
     # 1. SETUP : On se déplace dans un dossier temporaire isolé
