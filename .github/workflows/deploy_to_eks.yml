@@ -33,13 +33,13 @@ jobs:
           pip install pandas numpy pytest sqlalchemy psycopg2-binary
 
       - name: Run Cleaner Tests
-        run: pytest src/test/cleaner/test_cleaner.py
+        run: pytest src/cleaner/test/test_cleaner.py
 
       - name: Run Transformer Tests
-        run: pytest src/test/transformer/test_transformer.py
+        run: pytest src/transformer/test/test_transformer.py
 
       - name: Run Merger Tests
-        run: pytest src/test/merger/test_merger.py
+        run: pytest src/merger/test/test_merger.py
 
   # --- JOB 2 : DÉPLOIEMENT CONTINU (BUILD & PUSH) ---
   build-and-deploy:
