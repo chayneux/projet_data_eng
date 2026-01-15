@@ -3,7 +3,7 @@ import pandas as pd
 import os
 from merger import merge_and_finalize
 
-from ..merger import merge_and_finalize
+from merger.merger import merge_and_finalize
 
 def test_merger_logic(tmp_path):
     os.chdir(tmp_path)
