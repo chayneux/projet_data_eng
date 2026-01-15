@@ -42,7 +42,7 @@ jobs:
       - name: Run Merger Tests
         run: pytest src/step_3_merging/test/test_merger.py
 
-  # --- JOB 2 : DÉPLOIEMENT CONTINU (BUILD & PUSH) ---
+  # --- JOB 2 : BUILD & PUSH (Seulement sur main après succès des tests) ---
   build-and-deploy:
     name: Build and Push to AWS ECR
     needs: test
@@ -64,33 +64,32 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # Construction et Envoi de l'image CLEANER
+      # --- 1. BUILD CLEANER ---
       - name: Build & Push Cleaner
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
         run: |
-          # On se place dans le dossier, on build, et on tag
-          cd src/cleaner
-          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:$IMAGE_TAG
+          # Correction du chemin suite au renommage
+          cd src/step_1_cleaning
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:latest .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:latest
 
-      # Construction et Envoi de l'image TRANSFORMER
+      # --- 2. BUILD TRANSFORMER ---
       - name: Build & Push Transformer
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
         run: |
-          cd src/transformer
-          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:$IMAGE_TAG
+          # Correction du chemin suite au renommage
+          cd src/step_2_transformation
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:latest .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:latest
 
-      # Construction et Envoi de l'image MERGER
+      # --- 3. BUILD MERGER ---
       - name: Build & Push Merger
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
         run: |
-          cd src/merger
-          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:$IMAGE_TAG
+          # Correction du chemin suite au renommage
+          cd src/step_3_merging
+          docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:latest .
+          docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:latest
