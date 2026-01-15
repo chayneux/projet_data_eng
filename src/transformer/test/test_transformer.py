@@ -3,6 +3,8 @@ import pandas as pd
 import os
 from transformer import transform_data
 
+from ..transformer import transform_data
+
 def test_transformer_logic(tmp_path):
     os.chdir(tmp_path)
 
