@@ -1,7 +1,6 @@
 import pytest
 import pandas as pd
 import os
-from merger import merge_and_finalize
 
 from step_3_merging import merge_and_finalize
 

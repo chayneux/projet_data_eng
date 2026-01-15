@@ -1,7 +1,6 @@
 import pytest
 import pandas as pd
 import os
-from transformer import transform_data
 
 from step_2_transformation import transform_data
 
