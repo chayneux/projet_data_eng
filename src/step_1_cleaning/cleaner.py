@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import os
 
 def log_stats(df, step_name):
     print(f"\n--- [LOG] Étape: {step_name} ---")
@@ -9,20 +10,33 @@ def log_stats(df, step_name):
     print("-" * 30)
 
 def clean_data():
+    bucket_name = os.getenv('S3_BUCKET')
+    
+    # Si on est en test local (fichiers présents), on utilise le chemin relatif
+    # Sinon, on utilise le chemin S3
+    if os.path.exists("olist_products_dataset.csv"):
+        input_base = "."
+        output_base = "."
+        print("Mode local détecté pour les tests.")
+    else:
+        if not bucket_name:
+            raise ValueError("S3_BUCKET non défini et fichiers locaux absents.")
+        input_base = f"s3://{bucket_name}/raw"
+        output_base = f"s3://{bucket_name}/clean"
+        print(f"Mode Cloud détecté. Bucket: {bucket_name}")
+
     # Chargement
-    items = pd.read_csv("olist_order_items_dataset.csv")
-    products = pd.read_csv("olist_products_dataset.csv")
-    reviews = pd.read_csv("olist_order_reviews_dataset.csv")
+    items = pd.read_csv(f"{input_base}/olist_order_items_dataset.csv")
+    products = pd.read_csv(f"{input_base}/olist_products_dataset.csv")
+    reviews = pd.read_csv(f"{input_base}/olist_order_reviews_dataset.csv")
 
     log_stats(items, "Items - Avant Nettoyage")
     log_stats(products, "products - Avant Nettoyage")
     log_stats(reviews, "reviews - Avant Nettoyage")
 
     # --- NETTOYAGE PRODUITS ---
-    # Attribut A : Suppression si ID manquant
     products.dropna(subset=['product_id'], inplace=True)
     
-    # Attribut B : Harmonisation complexe (Catégorie basée sur le poids)
     def impute_category(row):
         if pd.isna(row['product_category_name']):
             return "heavy_volume" if row['product_weight_g'] > 5000 else "light_volume"
@@ -34,15 +48,15 @@ def clean_data():
     items.dropna(subset=['order_id', 'product_id'], inplace=True)
 
     # --- NETTOYAGE AVIS ---
-    # Harmonisation complexe : Imputation du score par la médiane
     median_score = reviews['review_score'].median()
     reviews['review_score'] = reviews['review_score'].fillna(median_score)
 
-    # Sauvegarde des fichiers "Clean" pour le produit suivant
-    items.to_csv("clean_items.csv", index=False)
-    products.to_csv("clean_products.csv", index=False)
-    reviews.to_csv("clean_reviews.csv", index=False)
-    print("Étape 1 terminée : Fichiers nettoyés et sauvegardés.")
+    # 3. Sauvegarde sur S3 (Dossier 'clean' pour la sortie)
+    items.to_csv(f"{output_base_path}/clean_items.csv", index=False)
+    products.to_csv(f"{output_base_path}/clean_products.csv", index=False)
+    reviews.to_csv(f"{output_base_path}/clean_reviews.csv", index=False)
+    
+    print(f"Étape 1 terminée : Fichiers sauvegardés dans {output_base_path}")
 
     log_stats(items, "Items - Après Nettoyage")
     log_stats(products, "products - Après Nettoyage")
