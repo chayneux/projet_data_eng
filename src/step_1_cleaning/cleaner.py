@@ -52,11 +52,11 @@ def clean_data():
     reviews['review_score'] = reviews['review_score'].fillna(median_score)
 
     # 3. Sauvegarde sur S3 (Dossier 'clean' pour la sortie)
-    items.to_csv(f"{output_base_path}/clean_items.csv", index=False)
-    products.to_csv(f"{output_base_path}/clean_products.csv", index=False)
-    reviews.to_csv(f"{output_base_path}/clean_reviews.csv", index=False)
+    items.to_csv(f"{output_base}/clean_items.csv", index=False)
+    products.to_csv(f"{output_base}/clean_products.csv", index=False)
+    reviews.to_csv(f"{output_base}/clean_reviews.csv", index=False)
     
-    print(f"Étape 1 terminée : Fichiers sauvegardés dans {output_base_path}")
+    print(f"Étape 1 terminée : Fichiers sauvegardés dans {output_base}")
 
     log_stats(items, "Items - Après Nettoyage")
     log_stats(products, "products - Après Nettoyage")
