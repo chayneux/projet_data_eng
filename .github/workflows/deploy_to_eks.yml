@@ -6,14 +6,12 @@ on:
   pull_request:
     branches: ["main", "dev"]
 
-# Définition des variables d'environnement globales
 env:
   AWS_REGION: eu-west-3
   ECR_REPOSITORY_PREFIX: olist-project
   PYTHONPATH: ${{ github.workspace }}/src
 
 jobs:
-  # --- JOB 1 : INTEGRATION CONTINUE (TESTS) ---
   test:
     name: Run Unit Tests & Profiling
     runs-on: ubuntu-latest
@@ -28,7 +26,6 @@ jobs:
           python-version: "3.9"
 
       - name: Install Dependencies
-        # On installe les dépendances communes pour lancer les tests
         run: |
           python -m pip install --upgrade pip
           pip install pandas numpy pytest sqlalchemy psycopg2-binary
@@ -42,7 +39,6 @@ jobs:
       - name: Run Merger Tests
         run: pytest src/step_3_merging/test/test_merger.py
 
-  # --- JOB 2 : BUILD & PUSH (Seulement sur main après succès des tests) ---
   build-and-deploy:
     name: Build and Push to AWS ECR
     needs: test
@@ -64,32 +60,26 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      # --- 1. BUILD CLEANER ---
       - name: Build & Push Cleaner
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # Correction du chemin suite au renommage
           cd src/step_1_cleaning
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:latest .
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-cleaner:latest
 
-      # --- 2. BUILD TRANSFORMER ---
       - name: Build & Push Transformer
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # Correction du chemin suite au renommage
           cd src/step_2_transformation
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:latest .
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-transformer:latest
 
-      # --- 3. BUILD MERGER ---
       - name: Build & Push Merger
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          # Correction du chemin suite au renommage
           cd src/step_3_merging
           docker build -t $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:latest .
           docker push $ECR_REGISTRY/${{ env.ECR_REPOSITORY_PREFIX }}-merger:latest

@@ -7,7 +7,6 @@ from step_2_transformation import transform_data
 def test_transformer_logic(tmp_path):
     os.chdir(tmp_path)
 
-    # 1. MOCK : Données "propres" en entrée
     # Produit : 10x10x10 = 1000 cm3
     products_data = {
         'product_id': ['P1'],
@@ -25,10 +24,8 @@ def test_transformer_logic(tmp_path):
     pd.DataFrame(products_data).to_csv("clean_products.csv", index=False)
     pd.DataFrame(items_data).to_csv("clean_items.csv", index=False)
 
-    # 2. ACTION
     transform_data()
 
-    # 3. ASSERT
     df_trans_prod = pd.read_csv("transformed_products.csv")
     df_trans_items = pd.read_csv("transformed_items.csv")
 

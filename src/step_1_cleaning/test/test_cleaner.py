@@ -9,10 +9,9 @@ def test_cleaner_logic(tmp_path):
     # 1. SETUP : On se déplace dans un dossier temporaire isolé
     os.chdir(tmp_path)
 
-    # 2. MOCK : Création de fausses données pour tester les cas limites
     # Cas à tester : Poids lourd sans catégorie -> doit devenir "heavy_volume"
     products_data = {
-        'product_id': ['P1', 'P2', np.nan], # P3 (NaN) doit être supprimé
+        'product_id': ['P1', 'P2', np.nan],
         'product_category_name': [None, 'tech', 'art'],
         'product_weight_g': [6000, 100, 100]
     }
@@ -20,18 +19,16 @@ def test_cleaner_logic(tmp_path):
     # Cas à tester : Review Score manquant -> doit devenir la médiane
     reviews_data = {
         'review_id': ['R1', 'R2', 'R3'],
-        'review_score': [1, 5, np.nan] # La médiane de 1 et 5 est 3.0
+        'review_score': [1, 5, np.nan] 
     }
 
     # Fichier items minimaliste
     items_data = {'order_id': ['O1'], 'product_id': ['P1']}
 
-    # Création des CSV bruts (tels que le script les attend)
     pd.DataFrame(products_data).to_csv("olist_products_dataset.csv", index=False)
     pd.DataFrame(reviews_data).to_csv("olist_order_reviews_dataset.csv", index=False)
     pd.DataFrame(items_data).to_csv("olist_order_items_dataset.csv", index=False)
 
-    # 3. ACTION : Lancement du script
     clean_data()
 
     # 4. ASSERT : Vérification des résultats

@@ -13,7 +13,6 @@ def transform_data():
     # 1. Gestion du chemin (Local vs S3)
     bucket_name = os.getenv('S3_BUCKET')
     
-    # On vérifie si on est en mode test local
     if os.path.exists("clean_items.csv"):
         input_base = "."
         output_base = "."
@@ -25,28 +24,28 @@ def transform_data():
         output_base = f"s3://{bucket_name}/transformed"
         print(f"Mode Cloud détecté. Lecture depuis : {input_base}")
 
-    # 2. Chargement des données (Nettoyées par l'étape 1)
+    # 2. Chargement des données 
     items = pd.read_csv(f"{input_base}/clean_items.csv")
     products = pd.read_csv(f"{input_base}/clean_products.csv")
 
     log_stats(items, "Items - Avant Transformation")
     log_stats(products, "products - Avant Transformation")
 
-    # 3. Calcul complexe sur les produits : Volume en cm3
+    # 3. Volume en cm3
     products['product_volume_cm3'] = (
         products['product_length_cm'] * products['product_height_cm'] * products['product_width_cm']
     ).fillna(0)
 
-    # 4. Feature Engineering sur les ventes : Ratio de Fret
+    # 4. Ratio de Fret
     items['freight_ratio'] = items['freight_value'] / items['price']
     items['freight_ratio'] = items['freight_ratio'].replace([np.inf, -np.inf], 0).fillna(0)
 
-    # 5. Drop de colonnes (Nettoyage de structure)
+    # 5. Nettoyage
     products_reduced = products.drop([
         'product_name_lenght', 
         'product_description_lenght', 
         'product_photos_qty'
-    ], axis=1, errors='ignore') # errors='ignore' évite de planter si déjà supprimé
+    ], axis=1, errors='ignore') 
 
     items_reduced = items.drop([
         'shipping_limit_date'

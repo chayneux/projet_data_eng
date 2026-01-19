@@ -29,11 +29,10 @@ def merge_and_finalize():
     products = pd.read_csv(f"{input_transfo}/transformed_products.csv")
     reviews = pd.read_csv(f"{input_clean}/clean_reviews.csv")
 
-    # 3. Fusion (Join)
+    # 3. Fusion 
     df_merged = pd.merge(items, products, on='product_id', how='inner')
     final_df = pd.merge(df_merged, reviews[['order_id', 'review_score']], on='order_id', how='left')
 
-    # 4. Feature Engineering Final
     # Un produit est risqué si Score < 2 ET Ratio Fret > 0.3
     final_df['is_high_risk'] = ((final_df['review_score'] < 2) & (final_df['freight_ratio'] > 0.3)).astype(int)
 
@@ -44,7 +43,7 @@ def merge_and_finalize():
         try:
             print("Tentative d'export vers RDS PostgreSQL...")
             engine = create_engine(db_url)
-            # On crée la table 'olist_final_analytics' (remplace si elle existe)
+            
             final_df.to_sql('olist_final_analytics', engine, if_exists='replace', index=False)
             print("Succès : Données insérées dans la base RDS !")
         except Exception as e:

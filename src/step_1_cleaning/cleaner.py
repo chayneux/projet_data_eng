@@ -12,8 +12,6 @@ def log_stats(df, step_name):
 def clean_data():
     bucket_name = os.getenv('S3_BUCKET')
     
-    # Si on est en test local (fichiers présents), on utilise le chemin relatif
-    # Sinon, on utilise le chemin S3
     if os.path.exists("olist_products_dataset.csv"):
         input_base = "."
         output_base = "."
@@ -51,7 +49,7 @@ def clean_data():
     median_score = reviews['review_score'].median()
     reviews['review_score'] = reviews['review_score'].fillna(median_score)
 
-    # 3. Sauvegarde sur S3 (Dossier 'clean' pour la sortie)
+    # 3. Sauvegarde sur S3 
     items.to_csv(f"{output_base}/clean_items.csv", index=False)
     products.to_csv(f"{output_base}/clean_products.csv", index=False)
     reviews.to_csv(f"{output_base}/clean_reviews.csv", index=False)
