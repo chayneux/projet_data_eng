@@ -10,23 +10,27 @@ def log_stats(df, step_name):
     print("-" * 30)
 
 def clean_data():
-    bucket_name = os.getenv('S3_BUCKET')
+    #bucket_name = os.getenv('S3_BUCKET')
     
-    if os.path.exists("olist_products_dataset.csv"):
-        input_base = "."
-        output_base = "."
-        print("Mode local détecté pour les tests.")
-    else:
-        if not bucket_name:
-            raise ValueError("S3_BUCKET non défini et fichiers locaux absents.")
-        input_base = f"s3://{bucket_name}/raw"
-        output_base = f"s3://{bucket_name}/clean"
-        print(f"Mode Cloud détecté. Bucket: {bucket_name}")
+    #if os.path.exists("olist_products_dataset.csv"):
+    #    input_base = "."
+    #    output_base = "."
+    #    print("Mode local détecté pour les tests.")
+    #else:
+    #    if not bucket_name:
+    #        raise ValueError("S3_BUCKET non défini et fichiers locaux absents.")
+    #    input_base = f"s3://{bucket_name}/raw"
+    #    output_base = f"s3://{bucket_name}/clean"
+    #    print(f"Mode Cloud détecté. Bucket: {bucket_name}")
+
+    raw_dir = os.getenv("DATA_RAW", ".")
+    clean_dir = os.getenv("DATA_CLEAN", ".")
+
 
     # Chargement
-    items = pd.read_csv(f"{input_base}/olist_order_items_dataset.csv")
-    products = pd.read_csv(f"{input_base}/olist_products_dataset.csv")
-    reviews = pd.read_csv(f"{input_base}/olist_order_reviews_dataset.csv")
+    items = pd.read_csv(f"{raw_dir}/olist_order_items_dataset.csv")
+    products = pd.read_csv(f"{raw_dir}/olist_products_dataset.csv")
+    reviews = pd.read_csv(f"{raw_dir}/olist_order_reviews_dataset.csv")
 
     log_stats(items, "Items - Avant Nettoyage")
     log_stats(products, "products - Avant Nettoyage")
@@ -50,11 +54,11 @@ def clean_data():
     reviews['review_score'] = reviews['review_score'].fillna(median_score)
 
     # 3. Sauvegarde sur S3 
-    items.to_csv(f"{output_base}/clean_items.csv", index=False)
-    products.to_csv(f"{output_base}/clean_products.csv", index=False)
-    reviews.to_csv(f"{output_base}/clean_reviews.csv", index=False)
+    items.to_csv(f"{clean_dir}/clean_items.csv", index=False)
+    products.to_csv(f"{clean_dir}/clean_products.csv", index=False)
+    reviews.to_csv(f"{clean_dir}/clean_reviews.csv", index=False)
     
-    print(f"Étape 1 terminée : Fichiers sauvegardés dans {output_base}")
+    print(f"Étape 1 terminée : Fichiers sauvegardés dans {clean_dir}")
 
     log_stats(items, "Items - Après Nettoyage")
     log_stats(products, "products - Après Nettoyage")

@@ -6,9 +6,6 @@ from step_3_merging import merge_and_finalize
 
 def test_merger_logic(tmp_path):
     os.chdir(tmp_path)
-
-    # 1. MOCK : Cas critique "High Risk"
-    # Score faible (1) + Ratio élevé (0.4) -> Doit être High Risk
     
     items_data = {
         'order_id': ['O1'], 'product_id': ['P1'],
@@ -22,17 +19,15 @@ def test_merger_logic(tmp_path):
     
     reviews_data = {
         'order_id': ['O1'],
-        'review_score': [1] # Mauvaise note
+        'review_score': [1]
     }
 
     pd.DataFrame(items_data).to_csv("transformed_items.csv", index=False)
     pd.DataFrame(products_data).to_csv("transformed_products.csv", index=False)
     pd.DataFrame(reviews_data).to_csv("clean_reviews.csv", index=False)
 
-    # 2. ACTION
     merge_and_finalize()
 
-    # 3. ASSERT
     df_final = pd.read_csv("final_dataset_to_db.csv")
 
     # Vérification de la jointure

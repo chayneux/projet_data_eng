@@ -11,22 +11,26 @@ def log_stats(df, step_name):
 
 def transform_data():
     # 1. Gestion du chemin (Local vs S3)
-    bucket_name = os.getenv('S3_BUCKET')
-    
-    if os.path.exists("clean_items.csv"):
-        input_base = "."
-        output_base = "."
-        print("Mode local détecté (Tests).")
-    else:
-        if not bucket_name:
-            raise ValueError("S3_BUCKET non défini et fichiers 'clean' absents.")
-        input_base = f"s3://{bucket_name}/clean"
-        output_base = f"s3://{bucket_name}/transformed"
-        print(f"Mode Cloud détecté. Lecture depuis : {input_base}")
+    #bucket_name = os.getenv('S3_BUCKET')
+    #
+    #if os.path.exists("clean_items.csv"):
+    #    input_base = "."
+    #    output_base = "."
+    #    print("Mode local détecté (Tests).")
+    #else:
+    #    if not bucket_name:
+    #        raise ValueError("S3_BUCKET non défini et fichiers 'clean' absents.")
+    #    input_base = f"s3://{bucket_name}/clean"
+    #    output_base = f"s3://{bucket_name}/transformed"
+    #    print(f"Mode Cloud détecté. Lecture depuis : {input_base}")
+
+    clean_dir = os.getenv("DATA_CLEAN", ".")
+    transformed_dir = os.getenv("DATA_TRANSFORMED", ".")
+
 
     # 2. Chargement des données 
-    items = pd.read_csv(f"{input_base}/clean_items.csv")
-    products = pd.read_csv(f"{input_base}/clean_products.csv")
+    items = pd.read_csv(f"{clean_dir}/clean_items.csv")
+    products = pd.read_csv(f"{clean_dir}/clean_products.csv")
 
     log_stats(items, "Items - Avant Transformation")
     log_stats(products, "products - Avant Transformation")
@@ -52,10 +56,10 @@ def transform_data():
     ], axis=1, errors='ignore')
 
     # 6. Sauvegarde
-    items_reduced.to_csv(f"{output_base}/transformed_items.csv", index=False)
-    products_reduced.to_csv(f"{output_base}/transformed_products.csv", index=False)
+    items_reduced.to_csv(f"{transformed_dir}/transformed_items.csv", index=False)
+    products_reduced.to_csv(f"{transformed_dir}/transformed_products.csv", index=False)
     
-    print(f"Étape 2 terminée : Fichiers sauvegardés dans {output_base}")
+    print(f"Étape 2 terminée : Fichiers sauvegardés dans {transformed_dir}")
 
     log_stats(items_reduced, "Items - Après Transformation")
     log_stats(products_reduced, "products - Après Transformation")
